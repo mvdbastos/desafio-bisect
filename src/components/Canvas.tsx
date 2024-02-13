@@ -9,7 +9,10 @@ import {
 } from "react";
 
 export type View = {
-  content: string;
+  content: {
+    label: string;
+    src: string;
+  };
   props: {
     id: string;
     style: {
@@ -114,11 +117,19 @@ export default function Canvas({ screen, views, viewsRef, setActiveViewID }: Can
                 key={index}
                 id={target.props.id}
                 className="target bg-neutral-700 border-neutral-600
+                           text-center
                            border drop-shadow-md
                            absolute"
-                style={target.props.style}
+                style={{
+                  ...target.props.style,
+                  backgroundImage: `url(${target.content.src})`,
+                  backgroundRepeat: "no-repeat",
+                  backgroundSize: "100% 100%",
+                }}
               >
-                {target.content}
+                <span className="bg-neutral-900 opacity-75 px-1">
+                  {target.content.label}
+                </span>
               </div>
             );
           })}

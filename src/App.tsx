@@ -1,4 +1,4 @@
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faTrash,
   faRotate,
@@ -7,39 +7,15 @@ import {
   faTableCells,
   faMinus,
   faFolderOpen,
-  faFloppyDisk
-} from '@fortawesome/free-solid-svg-icons'
-import Canvas from './components/Canvas';
-import { View, Screen } from './components/Canvas';
-import { useEffect, useRef, useState } from 'react';
-
-const initialViews: View[] = [
-  {
-    content: "View 0",
-    props: {
-      id: "view0",
-      style: {
-        transform: "translate(35.8724px, 123.82px) rotate(21.6343deg)",
-        width: "97px",
-        height: "55px",
-      },
-    },
-  },
-  {
-    content: "View 1",
-    props: {
-      id: "view1",
-      style: {
-        transform: "translate(32.1856px, 252.116px) rotate(21.6343deg)",
-        width: "97px",
-        height: "75px",
-      },
-    },
-  },
-];
+  faFloppyDisk,
+  faImage,
+} from "@fortawesome/free-solid-svg-icons";
+import Canvas from "./components/Canvas";
+import { View, Screen } from "./components/Canvas";
+import { useEffect, useRef, useState } from "react";
 
 const App = () => {
-  const [views, setViews] = useState<View[]>(initialViews);
+  const [views, setViews] = useState<View[]>([]);
   const viewsRef = useRef(views);
   const [activeViewID, setActiveViewID] = useState<string | null>(null);
   const [screen, setScreen] = useState<Screen>({
@@ -55,13 +31,61 @@ const App = () => {
     console.log("activeViewID: ", activeViewID);
   }, [activeViewID]);
 
-  const handleGridResolutionChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleDeleteView = () => {
+    if (activeViewID) {
+      setViews(views.filter((view) => view.props.id !== activeViewID));
+      setActiveViewID(null);
+    }
+  };
+
+  const handleAddView = (src: string) => {
+    setViews([
+      ...views,
+      {
+        content: {
+          label: `View ${views.length}`,
+          src,
+        },
+        props: {
+          id: `view${views.length}`,
+          style: {
+            transform: "translate(0px, 0px) rotate(0deg)",
+            width: "367px",
+            height: "267px",
+          },
+        },
+      },
+    ]);
+  };
+
+  const handleChangeInput = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (activeViewID) {
+      setViews(
+        views.map((view) => {
+          if (view.props.id === activeViewID) {
+            return {
+              ...view,
+              content: {
+                ...view.content,
+                src: event.target.value,
+              },
+            };
+          }
+          return view;
+        })
+      );
+    }
+  }
+
+  const handleGridResolutionChange = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
     const resolution = parseInt(event.target.value);
     setScreen((prevScreen) => ({
       ...prevScreen,
       snapGrid: { ...prevScreen.snapGrid, resolution },
     }));
-  }
+  };
 
   const handleGridToggle = () => {
     setScreen((prevScreen) => ({
@@ -71,22 +95,22 @@ const App = () => {
         active: !screen.snapGrid.active,
       },
     }));
-  }
+  };
 
   const handleJSONDownload = () => {
     console.log("targets: ", viewsRef.current);
-    
+
     // Convert views to JSON
     const viewsJson = JSON.stringify(viewsRef.current);
 
     // Create a Blob object with the JSON data
-    const blob = new Blob([viewsJson], { type: 'application/json' });
+    const blob = new Blob([viewsJson], { type: "application/json" });
 
     // Create a download link for the file
     const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
+    const link = document.createElement("a");
     link.href = url;
-    link.download = 'views.json';
+    link.download = "views.json";
     link.click();
 
     // Clean up the URL object
@@ -114,61 +138,99 @@ const App = () => {
       reader.readAsText(file);
     }
   };
-  
+
+  const handleChangeLabel = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (activeViewID) {
+      setViews(
+        views.map((view) => {
+          if (view.props.id === activeViewID) {
+            return {
+              ...view,
+              content: {
+                ...view.content,
+                label: event.target.value,
+              },
+            };
+          }
+          return view;
+        })
+      );
+    }
+  };
+
   return (
-    <div className='h-screen flex flex-col'>
-      <header className='text-neutral-300 bg-neutral-800 border border-neutral-700
-                        h-16 flex flex-row place-items-center p-4 gap-2'>
-        <div className=''>
+    <div className="h-screen flex flex-col text-neutral-300">
+      <header
+        className=" bg-neutral-800 border border-neutral-700
+                        h-16 flex flex-row place-items-center p-4 gap-2"
+      >
+        <div>
           {`Resolution: ${screen.resolution.width}x${screen.resolution.height}`}
         </div>
-        <div className='text-neutral-700'>
+        <div className="text-neutral-700">
           <FontAwesomeIcon icon={faMinus} rotation={90} />
         </div>
-        <div className='p-2 hover:bg-neutral-700 active:bg-neutral-900 rounded-md'>
+        <div className="p-2 hover:bg-neutral-700 active:bg-neutral-900 rounded-md">
           <label htmlFor="file-upload" className="cursor-pointer">
             <FontAwesomeIcon icon={faFolderOpen} />
           </label>
-          <input id="file-upload"
+          <input
+            id="file-upload"
             type="file"
             accept=".json"
             className="hidden"
             onChange={handleJSONUpload}
           />
         </div>
-        <div className='p-2 hover:bg-neutral-700 active:bg-neutral-900 rounded-md'
-              onClick={handleJSONDownload}
+        <div
+          className="p-2 hover:bg-neutral-700 active:bg-neutral-900 rounded-md"
+          onClick={handleJSONDownload}
         >
           <FontAwesomeIcon icon={faFloppyDisk} />
         </div>
-        <button className='ml-auto p-2 hover:bg-neutral-700 active:bg-neutral-900 disabled:opacity-25 rounded-md'
-        disabled={activeViewID === null}
+        <button
+          className="ml-auto p-2 hover:bg-neutral-700 active:bg-neutral-900 disabled:opacity-25 rounded-md"
+          disabled={activeViewID === null}
+          onClick={handleDeleteView}
         >
           <FontAwesomeIcon icon={faTrash} />
         </button>
-        <div className='text-neutral-700'>
+        <div className="text-neutral-700">
           <FontAwesomeIcon icon={faMinus} rotation={90} />
         </div>
-        <button disabled className='p-2 hover:bg-neutral-700 active:bg-neutral-900 disabled:opacity-25 rounded-md'>
+        <button
+          disabled
+          className="p-2 hover:bg-neutral-700 active:bg-neutral-900 disabled:opacity-25 rounded-md"
+        >
           <FontAwesomeIcon icon={faUpDownLeftRight} />
         </button>
-        <button disabled className='p-2 hover:bg-neutral-700 active:bg-neutral-900 disabled:opacity-25 rounded-md'>
+        <button
+          disabled
+          className="p-2 hover:bg-neutral-700 active:bg-neutral-900 disabled:opacity-25 rounded-md"
+        >
           <FontAwesomeIcon icon={faUpRightAndDownLeftFromCenter} />
         </button>
-        <button disabled className='p-2 hover:bg-neutral-700 active:bg-neutral-900 disabled:opacity-25 rounded-md'>
-         <FontAwesomeIcon icon={faRotate} />
+        <button
+          disabled
+          className="p-2 hover:bg-neutral-700 active:bg-neutral-900 disabled:opacity-25 rounded-md"
+        >
+          <FontAwesomeIcon icon={faRotate} />
         </button>
-        <div className='text-neutral-700'>
+        <div className="text-neutral-700">
           <FontAwesomeIcon icon={faMinus} rotation={90} />
         </div>
-        <button className={`${screen.snapGrid.active? "bg-neutral-900": ""} p-2 hover:bg-neutral-700 active:bg-neutral-900 rounded-md`}
-                onClick={handleGridToggle}
+        <button
+          className={`${
+            screen.snapGrid.active ? "bg-neutral-900" : ""
+          } p-2 hover:bg-neutral-700 active:bg-neutral-900 rounded-md`}
+          onClick={handleGridToggle}
         >
           <FontAwesomeIcon icon={faTableCells} />
         </button>
         <div className="text-center">
           {/* <label htmlFor="default-range" className="text-xs">Grid Size</label> */}
-          <input id="default-range"
+          <input
+            id="default-range"
             className="bg-neutral-300 accent-neutral-500 disabled:opacity-25
               w-full h-0.5 rounded-lg
               appearance-none cursor-pointer align-middle"
@@ -176,23 +238,84 @@ const App = () => {
             value={screen.snapGrid.resolution}
             disabled={!screen.snapGrid.active}
             onChange={handleGridResolutionChange}
-            />
+          />
         </div>
       </header>
-      <div className='flex flex-auto'>
+      <div className="flex flex-auto">
         <Canvas
           screen={screen}
           views={views}
           viewsRef={viewsRef}
           setActiveViewID={setActiveViewID}
         />
-        <aside className='bg-neutral-800 border border-neutral-700
-                          flex flex-col w-64'>
-          <div className='h-1/2'>
-            top
+        <aside
+          className="bg-neutral-800 border border-neutral-700
+                          flex flex-col w-64"
+        >
+          <div className="h-1/2 flex flex-wrap content-start justify-evenly border border-neutral-700">
+            <button
+              className="m-1 p-2 m-auto hover:bg-neutral-700 active:bg-neutral-900 disabled:opacity-25 rounded-md"
+              onClick={() =>
+                handleAddView("https://picsum.photos/id/29/367/267")
+              }
+            >
+              <FontAwesomeIcon className="pe-2" icon={faImage} />
+              Imagem 1
+            </button>
+            <button
+              className="m-1 p-2 m-auto hover:bg-neutral-700 active:bg-neutral-900 disabled:opacity-25 rounded-md"
+              onClick={() =>
+                handleAddView("https://picsum.photos/id/30/367/267")
+              }
+            >
+              <FontAwesomeIcon className="pe-2" icon={faImage} />
+              Imagem 2
+            </button>
+            <button
+              className="m-1 p-2 m-auto hover:bg-neutral-700 active:bg-neutral-900 disabled:opacity-25 rounded-md"
+              onClick={() =>
+                handleAddView("https://picsum.photos/id/31/367/267")
+              }
+            >
+              <FontAwesomeIcon className="pe-2" icon={faImage} />
+              Imagem 3
+            </button>
           </div>
-          <div>
-            bottom
+          <div className="h-1/2 p-2 flex flex-wrap content-start border border-neutral-700">
+            <label htmlFor="label-input" className="text-xs">
+              Label
+            </label>
+            <input
+              id="label-input"
+              className="text-neutral-900 bg-neutral-300 accent-neutral-500 w-full h-8 disabled:opacity-25 rounded-sm"
+              type="text"
+              placeholder="Label"
+              disabled={activeViewID === null}
+              value={
+                activeViewID
+                  ? views.find((view) => view.props.id === activeViewID)
+                      ?.content.label
+                  : "-"
+              }
+              onChange={handleChangeLabel}
+            />
+            <label htmlFor="src-input" className="text-xs">
+              Source
+            </label>
+            <input
+              id="src-input"
+              className="text-neutral-900 bg-neutral-300 accent-neutral-500 w-full h-8 disabled:opacity-25 rounded-sm"
+              type="text"
+              placeholder="Source"
+              disabled={activeViewID === null}
+              value={
+                activeViewID
+                  ? views.find((view) => view.props.id === activeViewID)
+                      ?.content.src
+                  : "-"
+              }
+              onChange={handleChangeInput}
+            />
           </div>
         </aside>
       </div>
