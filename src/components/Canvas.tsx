@@ -1,6 +1,12 @@
-import * as React from "react";
 import Moveable from "react-moveable";
 import { flushSync } from "react-dom";
+import {
+  MutableRefObject,
+  useEffect,
+  useRef,
+  useState,
+  MouseEvent,
+} from "react";
 
 export type View = {
   content: string;
@@ -14,32 +20,48 @@ export type View = {
   };
 };
 
-export type Resolution = {
-  width: number;
-  height: number;
+export type Screen = {
+  resolution: {
+    width: number;
+    height: number;
+  };
+  snapGrid: {
+    active: boolean;
+    x: number;
+    y: number;
+  };
 };
 
 export type CanvasProps = {
-  resolution: Resolution;
+  screen: Screen;
   views: View[];
-  setViews: React.Dispatch<React.SetStateAction<View[]>>;
+  viewsRef: MutableRefObject<View[]>;
 };
 
-export default function Canvas({ resolution, views, setViews }: CanvasProps ) {
-  const [target, setTarget] = React.useState<HTMLElement | null>(null);
-  const moveableRef = React.useRef<Moveable>(null);
-  const [state, setState] = React.useState({
+export default function Canvas({ screen, views, viewsRef }: CanvasProps) {
+  const { resolution, snapGrid } = screen;
+  const snap = {
+    active: snapGrid.active,
+    x: snapGrid.active ? snapGrid.x : 0,
+    y: snapGrid.active ? snapGrid.y : 0,
+  }
+  const [target, setTarget] = useState<HTMLElement | null>(null);
+  const moveableRef = useRef<Moveable>(null);
+  const [state, setState] = useState({
     resizable: false,
     rotatable: false,
     originDraggable: false,
     origin: false,
   });
 
-  const handleClick = () => {
-    console.log("targets: ", views);
-  };
+  useEffect(() => {
+    // update viewsRef when views change
+    viewsRef.current = views;
+    // disable moveable when views change
+    setTarget(null);
+  }, [views, viewsRef]);
 
-  const handleChangeTarget = (e: React.MouseEvent<HTMLElement>) => {
+  const handleChangeTarget = (e: MouseEvent<HTMLElement>) => {
     const target = e.target as HTMLElement;
     if (target.classList.contains("target") || target.id === "screen") {
       setTarget(target);
@@ -69,14 +91,18 @@ export default function Canvas({ resolution, views, setViews }: CanvasProps ) {
         className="bg-neutral-900 grid place-content-center w-full overflow-hidden"
         onClick={handleChangeTarget}
       >
-        <button onClick={() => handleClick()}>click</button>
         <div
           id="screen"
           className="bg-neutral-800 border-neutral-700
                     border drop-shadow-lg
                     relative origin-center overflow-hidden"
-          style={{ width: resolution.width, height: resolution.height }}
-          // TODO: show grid in css
+          style={{
+            width: resolution.width,
+            height: resolution.height,
+            backgroundImage: `linear-gradient(to right, #444 1px, transparent 1px),
+                              linear-gradient(to bottom, #444 1px, transparent 1px)`,
+            backgroundSize: `${snap.x}px ${snap.y}px`,
+          }}
           onClick={handleChangeTarget}
         >
           {views.map((target, index) => {
@@ -104,9 +130,10 @@ export default function Canvas({ resolution, views, setViews }: CanvasProps ) {
         rotatable={state.rotatable}
         originDraggable={state.originDraggable}
         origin={state.origin}
-        snappable={true}
-        snapGridWidth={10}
-        snapGridHeight={10}
+        snappable={snap.active}
+        snapGridWidth={snap.x}
+        snapGridHeight={snap.y}
+        isDisplayGridGuidelines={true}
         onRender={(e) => {
           e.target.style.cssText += e.cssText;
           // e.target.style.transform = e.style.transform;
@@ -119,22 +146,18 @@ export default function Canvas({ resolution, views, setViews }: CanvasProps ) {
           const { id } = e.target;
           const { transform, width, height } = e.target.style;
           const style = { transform, width, height };
-          // console.log("target: ", target);
-          setViews((prevTargets) => {
-            const target = prevTargets.find((target) => target.props.id === id);
-            if (target) {
-              target.props.style.height = style.height;
-              target.props.style.width = style.width;
-              target.props.style.transform = style.transform;
-            }
-            return prevTargets;
-            // const newTargets = prevTargets.map((target) => {
-            //   if (target.props.id === id) {
-            //     target.props.style = style;
-            //   }
-            //   return target;
-            // });
-          });
+
+          const target = viewsRef.current.find(
+            (target) => target.props.id === id
+          );
+          if (target) {
+            target.props.style = {
+              ...target.props.style,
+              transform: style.transform,
+              width: style.width,
+              height: style.height,
+            };
+          }
         }}
         onDragOrigin={(e) => {
           e.target.style.transformOrigin = e.transformOrigin;
