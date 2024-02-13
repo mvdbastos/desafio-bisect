@@ -7,8 +7,43 @@ import {
   faTableCells,
   faMinus
 } from '@fortawesome/free-solid-svg-icons'
+import Canvas from './components/Canvas';
+import { View, Resolution } from './components/Canvas';
+import { useEffect, useState } from 'react';
+
+const initialViews: View[] = [
+  {
+    content: "View 0",
+    props: {
+      id: "view0",
+      style: {
+        transform: "translate(35.8724px, 123.82px) rotate(21.6343deg)",
+        width: "97px",
+        height: "55px",
+      },
+    },
+  },
+  {
+    content: "View 1",
+    props: {
+      id: "view1",
+      style: {
+        transform: "translate(32.1856px, 252.116px) rotate(21.6343deg)",
+        width: "97px",
+        height: "75px",
+      },
+    },
+  },
+];
 
 const App = () => {
+  const [views, setViews] = useState<View[]>(initialViews);
+  const resolution: Resolution = { width: 640, height: 480 };
+
+  useEffect(() => {
+    console.log("views: ", views);
+  }, [views]);
+  
   return (
     <div className='h-screen flex flex-col'>
       <header className='text-neutral-300 bg-neutral-800 border border-neutral-700
@@ -41,21 +76,18 @@ const App = () => {
           {/* <label htmlFor="default-range" className="block mb-2">Default range</label> */}
           <input id="default-range"
             type="range"
-            value="50"
+            // value="50"
             className="bg-neutral-300 accent-neutral-300
                       w-full h-0.5 rounded-lg
                       appearance-none cursor-pointer align-middle" />
         </div>
       </header>
       <div className='flex flex-auto'>
-        <main className='bg-neutral-900 relative w-full overflow-hidden'>
-          <div className='bg-neutral-800 border border-neutral-700 drop-shadow-lg
-                          absolute self-center
-                          -translate-x-1/2 left-1/2
-                          -translate-y-1/2 top-1/2' style={{width:640, height:480}}>
-            square
-          </div>
-        </main>
+        <Canvas
+          resolution={resolution}
+          views={views}
+          setViews={setViews}
+        />
         <aside className='bg-neutral-800 border border-neutral-700
                           flex w-64'>
           <div>
