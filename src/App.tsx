@@ -41,6 +41,7 @@ const initialViews: View[] = [
 const App = () => {
   const [views, setViews] = useState<View[]>(initialViews);
   const viewsRef = useRef(views);
+  const [activeViewID, setActiveViewID] = useState<string | null>(null);
   const [screen, setScreen] = useState<Screen>({
     resolution: { width: 640, height: 480 },
     snapGrid: { active: true, x: 10, y: 10 },
@@ -49,6 +50,10 @@ const App = () => {
   useEffect(() => {
     console.log("views: ", views);
   }, [views]);
+
+  useEffect(() => {
+    console.log("activeViewID: ", activeViewID);
+  }, [activeViewID]);
 
   const handleGridChange = () => {
     setScreen((prevScreen) => ({
@@ -163,6 +168,7 @@ const App = () => {
           screen={screen}
           views={views}
           viewsRef={viewsRef}
+          setActiveViewID={setActiveViewID}
         />
         <aside className='bg-neutral-800 border border-neutral-700
                           flex flex-col w-64'>

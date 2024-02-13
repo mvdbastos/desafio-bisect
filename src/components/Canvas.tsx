@@ -36,9 +36,10 @@ export type CanvasProps = {
   screen: Screen;
   views: View[];
   viewsRef: MutableRefObject<View[]>;
+  setActiveViewID: React.Dispatch<React.SetStateAction<string | null>>;
 };
 
-export default function Canvas({ screen, views, viewsRef }: CanvasProps) {
+export default function Canvas({ screen, views, viewsRef, setActiveViewID }: CanvasProps) {
   const { resolution, snapGrid } = screen;
   const snap = {
     active: snapGrid.active,
@@ -65,7 +66,11 @@ export default function Canvas({ screen, views, viewsRef }: CanvasProps) {
     const target = e.target as HTMLElement;
     if (target.classList.contains("target") || target.id === "screen") {
       setTarget(target);
-    } else setTarget(null);
+      setActiveViewID(target.id === "screen" ? null : target.id);
+    } else {
+      setTarget(null);
+      setActiveViewID(null);
+    }
 
     if (target.id === "screen") {
       setState({
