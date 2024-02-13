@@ -27,8 +27,7 @@ export type Screen = {
   };
   snapGrid: {
     active: boolean;
-    x: number;
-    y: number;
+    resolution: number;
   };
 };
 
@@ -43,8 +42,7 @@ export default function Canvas({ screen, views, viewsRef, setActiveViewID }: Can
   const { resolution, snapGrid } = screen;
   const snap = {
     active: snapGrid.active,
-    x: snapGrid.active ? snapGrid.x : 0,
-    y: snapGrid.active ? snapGrid.y : 0,
+    resolution: snapGrid.active ? snapGrid.resolution : 0,
   }
   const [target, setTarget] = useState<HTMLElement | null>(null);
   const moveableRef = useRef<Moveable>(null);
@@ -106,7 +104,7 @@ export default function Canvas({ screen, views, viewsRef, setActiveViewID }: Can
             height: resolution.height,
             backgroundImage: `linear-gradient(to right, #444 1px, transparent 1px),
                               linear-gradient(to bottom, #444 1px, transparent 1px)`,
-            backgroundSize: `${snap.x}px ${snap.y}px`,
+            backgroundSize: `${snap.resolution}px ${snap.resolution}px`,
           }}
           onClick={handleChangeTarget}
         >
@@ -136,8 +134,8 @@ export default function Canvas({ screen, views, viewsRef, setActiveViewID }: Can
         originDraggable={state.originDraggable}
         origin={state.origin}
         snappable={snap.active}
-        snapGridWidth={snap.x}
-        snapGridHeight={snap.y}
+        snapGridWidth={snap.resolution}
+        snapGridHeight={snap.resolution}
         isDisplayGridGuidelines={true}
         onRender={(e) => {
           e.target.style.cssText += e.cssText;

@@ -6,8 +6,8 @@ import {
   faUpRightAndDownLeftFromCenter,
   faTableCells,
   faMinus,
-  faDownload,
-  faUpload
+  faFolderOpen,
+  faFloppyDisk
 } from '@fortawesome/free-solid-svg-icons'
 import Canvas from './components/Canvas';
 import { View, Screen } from './components/Canvas';
@@ -44,7 +44,7 @@ const App = () => {
   const [activeViewID, setActiveViewID] = useState<string | null>(null);
   const [screen, setScreen] = useState<Screen>({
     resolution: { width: 640, height: 480 },
-    snapGrid: { active: true, x: 10, y: 10 },
+    snapGrid: { active: true, resolution: 10 },
   });
 
   useEffect(() => {
@@ -55,7 +55,15 @@ const App = () => {
     console.log("activeViewID: ", activeViewID);
   }, [activeViewID]);
 
-  const handleGridChange = () => {
+  const handleGridResolutionChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const resolution = parseInt(event.target.value);
+    setScreen((prevScreen) => ({
+      ...prevScreen,
+      snapGrid: { ...prevScreen.snapGrid, resolution },
+    }));
+  }
+
+  const handleGridToggle = () => {
     setScreen((prevScreen) => ({
       ...prevScreen,
       snapGrid: {
@@ -110,13 +118,16 @@ const App = () => {
   return (
     <div className='h-screen flex flex-col'>
       <header className='text-neutral-300 bg-neutral-800 border border-neutral-700
-                        h-16 flex flex-row place-items-center p-4 gap-4'>
-        <div className='mr-auto'>
-          resolution
+                        h-16 flex flex-row place-items-center p-4 gap-2'>
+        <div className=''>
+          {`Resolution: ${screen.resolution.width}x${screen.resolution.height}`}
+        </div>
+        <div className='text-neutral-700'>
+          <FontAwesomeIcon icon={faMinus} rotation={90} />
         </div>
         <div className='p-2 hover:bg-neutral-700 active:bg-neutral-900 rounded-md'>
           <label htmlFor="file-upload" className="cursor-pointer">
-            <FontAwesomeIcon icon={faUpload} />
+            <FontAwesomeIcon icon={faFolderOpen} />
           </label>
           <input id="file-upload"
             type="file"
@@ -128,17 +139,9 @@ const App = () => {
         <div className='p-2 hover:bg-neutral-700 active:bg-neutral-900 rounded-md'
               onClick={handleJSONDownload}
         >
-          <FontAwesomeIcon icon={faDownload} />
+          <FontAwesomeIcon icon={faFloppyDisk} />
         </div>
-        <button className='p-2 hover:bg-neutral-700 active:bg-neutral-900 rounded-md ml-auto'
-                onClick={handleGridChange}
-        >
-          <FontAwesomeIcon icon={faTableCells} />
-        </button>
-        <div className='text-neutral-700'>
-          <FontAwesomeIcon icon={faMinus} rotation={90} />
-        </div>
-        <button className='p-2 hover:bg-neutral-700 active:bg-neutral-900 rounded-md'>
+        <button className='ml-auto p-2 hover:bg-neutral-700 active:bg-neutral-900 rounded-md'>
           <FontAwesomeIcon icon={faTrash} />
         </button>
         <button className='p-2 hover:bg-neutral-700 active:bg-neutral-900 rounded-md'>
@@ -153,14 +156,22 @@ const App = () => {
         <div className='text-neutral-700'>
           <FontAwesomeIcon icon={faMinus} rotation={90} />
         </div>
-        <div>
-          {/* <label htmlFor="default-range" className="block mb-2">Default range</label> */}
+        <button className={`${screen.snapGrid.active? "bg-neutral-900": ""} p-2 hover:bg-neutral-700 active:bg-neutral-900 rounded-md`}
+                onClick={handleGridToggle}
+        >
+          <FontAwesomeIcon icon={faTableCells} />
+        </button>
+        <div className="text-center">
+          {/* <label htmlFor="default-range" className="text-xs">Grid Size</label> */}
           <input id="default-range"
+            className="bg-neutral-300 accent-neutral-500 disabled:opacity-25
+              w-full h-0.5 rounded-lg
+              appearance-none cursor-pointer align-middle"
             type="range"
-            // value="50"
-            className="bg-neutral-300 accent-neutral-300
-                      w-full h-0.5 rounded-lg
-                      appearance-none cursor-pointer align-middle" />
+            value={screen.snapGrid.resolution}
+            disabled={!screen.snapGrid.active}
+            onChange={handleGridResolutionChange}
+            />
         </div>
       </header>
       <div className='flex flex-auto'>
