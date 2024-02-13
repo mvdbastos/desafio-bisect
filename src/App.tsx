@@ -44,7 +44,7 @@ const App = () => {
   const [activeViewID, setActiveViewID] = useState<string | null>(null);
   const [screen, setScreen] = useState<Screen>({
     resolution: { width: 640, height: 480 },
-    snapGrid: { active: true, resolution: 10 },
+    snapGrid: { active: false, resolution: 10 },
   });
 
   useEffect(() => {
@@ -141,16 +141,21 @@ const App = () => {
         >
           <FontAwesomeIcon icon={faFloppyDisk} />
         </div>
-        <button className='ml-auto p-2 hover:bg-neutral-700 active:bg-neutral-900 rounded-md'>
+        <button className='ml-auto p-2 hover:bg-neutral-700 active:bg-neutral-900 disabled:opacity-25 rounded-md'
+        disabled={activeViewID === null}
+        >
           <FontAwesomeIcon icon={faTrash} />
         </button>
-        <button className='p-2 hover:bg-neutral-700 active:bg-neutral-900 rounded-md'>
+        <div className='text-neutral-700'>
+          <FontAwesomeIcon icon={faMinus} rotation={90} />
+        </div>
+        <button disabled className='p-2 hover:bg-neutral-700 active:bg-neutral-900 disabled:opacity-25 rounded-md'>
           <FontAwesomeIcon icon={faUpDownLeftRight} />
         </button>
-        <button className='p-2 hover:bg-neutral-700 active:bg-neutral-900 rounded-md'>
+        <button disabled className='p-2 hover:bg-neutral-700 active:bg-neutral-900 disabled:opacity-25 rounded-md'>
           <FontAwesomeIcon icon={faUpRightAndDownLeftFromCenter} />
         </button>
-        <button className='p-2 hover:bg-neutral-700 active:bg-neutral-900 rounded-md'>
+        <button disabled className='p-2 hover:bg-neutral-700 active:bg-neutral-900 disabled:opacity-25 rounded-md'>
          <FontAwesomeIcon icon={faRotate} />
         </button>
         <div className='text-neutral-700'>
