@@ -1,11 +1,12 @@
-import Moveable from "react-moveable";
+import Moveable, { MoveableProps } from "react-moveable";
 import { flushSync } from "react-dom";
 import {
   MutableRefObject,
   useEffect,
   useRef,
-  useState,
   MouseEvent,
+  Dispatch,
+  SetStateAction,
 } from "react";
 
 export type View = {
@@ -28,65 +29,73 @@ export type Screen = {
     width: number;
     height: number;
   };
-  snapGrid: {
-    active: boolean;
-    resolution: number;
-  };
 };
 
 export type CanvasProps = {
   screen: Screen;
   views: View[];
   viewsRef: MutableRefObject<View[]>;
-  setActiveViewID: React.Dispatch<React.SetStateAction<string | null>>;
+  setActiveViewID: Dispatch<SetStateAction<string | null>>;
+  moveableProps: MoveableProps;
+  setMoveableProps: Dispatch<SetStateAction<MoveableProps>>;
 };
 
-export default function Canvas({ screen, views, viewsRef, setActiveViewID }: CanvasProps) {
-  const { resolution, snapGrid } = screen;
-  const snap = {
-    active: snapGrid.active,
-    resolution: snapGrid.active ? snapGrid.resolution : 0,
-  }
-  const [target, setTarget] = useState<HTMLElement | null>(null);
+// export type MoveableProps = {
+//   target: HTMLElement | null;
+//   resizable: boolean;
+//   rotatable: boolean;
+//   originDraggable: boolean;
+//   origin: boolean;
+// };
+
+export default function Canvas({
+  screen,
+  views,
+  viewsRef,
+  setActiveViewID,
+  moveableProps,
+  setMoveableProps,
+}: CanvasProps) {
+  const { resolution } = screen;
+  // const [target, setTarget] = useState<HTMLElement | null>(null);
   const moveableRef = useRef<Moveable>(null);
-  const [state, setState] = useState({
-    resizable: false,
-    rotatable: false,
-    originDraggable: false,
-    origin: false,
-  });
 
   useEffect(() => {
     // update viewsRef when views change
     viewsRef.current = views;
     // disable moveable when views change
-    setTarget(null);
-  }, [views, viewsRef]);
+    // setTarget(null);
+    setMoveableProps((prev) => ({ ...prev, target: null }));
+  }, [setMoveableProps, views, viewsRef]);
 
   const handleChangeTarget = (e: MouseEvent<HTMLElement>) => {
     const target = e.target as HTMLElement;
     if (target.classList.contains("target") || target.id === "screen") {
-      setTarget(target);
+      // setTarget(target);
+      setMoveableProps((prev) => ({ ...prev, target }));
       setActiveViewID(target.id === "screen" ? null : target.id);
     } else {
-      setTarget(null);
+      // setTarget(null);
+      setMoveableProps((prev) => ({ ...prev, target: null }));
       setActiveViewID(null);
     }
 
     if (target.id === "screen") {
-      setState({
+      setMoveableProps((prev) => ({
+        ...prev,
         resizable: false,
         rotatable: false,
         originDraggable: false,
         origin: false,
-      });
+      }));
     } else {
-      setState({
+      setMoveableProps((prev) => ({
+        ...prev,
         resizable: true,
         rotatable: true,
         originDraggable: true,
         origin: true,
-      });
+      }));
     }
   };
 
@@ -107,7 +116,7 @@ export default function Canvas({ screen, views, viewsRef, setActiveViewID }: Can
             height: resolution.height,
             backgroundImage: `linear-gradient(to right, #444 1px, transparent 1px),
                               linear-gradient(to bottom, #444 1px, transparent 1px)`,
-            backgroundSize: `${snap.resolution}px ${snap.resolution}px`,
+            backgroundSize: `${moveableProps.snapGridWidth}px ${moveableProps.snapGridHeight}px`,
           }}
           onClick={handleChangeTarget}
         >
@@ -137,16 +146,16 @@ export default function Canvas({ screen, views, viewsRef, setActiveViewID }: Can
       </main>
       <Moveable
         ref={moveableRef}
-        target={target}
         flushSync={flushSync}
         draggable={true}
-        resizable={state.resizable}
-        rotatable={state.rotatable}
-        originDraggable={state.originDraggable}
-        origin={state.origin}
-        snappable={snap.active}
-        snapGridWidth={snap.resolution}
-        snapGridHeight={snap.resolution}
+        target={moveableProps.target}
+        resizable={moveableProps.resizable}
+        rotatable={moveableProps.rotatable}
+        originDraggable={moveableProps.originDraggable}
+        origin={moveableProps.origin}
+        snappable={moveableProps.snappable}
+        snapGridWidth={moveableProps.snapGridWidth}
+        snapGridHeight={moveableProps.snapGridHeight}
         isDisplayGridGuidelines={true}
         onRender={(e) => {
           e.target.style.cssText += e.cssText;

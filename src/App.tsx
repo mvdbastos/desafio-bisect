@@ -13,14 +13,22 @@ import {
 import Canvas from "./components/Canvas";
 import { View, Screen } from "./components/Canvas";
 import { useEffect, useRef, useState } from "react";
+import { MoveableProps } from "react-moveable";
 
 const App = () => {
   const [views, setViews] = useState<View[]>([]);
   const viewsRef = useRef(views);
   const [activeViewID, setActiveViewID] = useState<string | null>(null);
-  const [screen, setScreen] = useState<Screen>({
-    resolution: { width: 640, height: 480 },
-    snapGrid: { active: false, resolution: 10 },
+  const screen: Screen = {resolution: { width: 640, height: 480 }};
+  const [moveableProps, setMoveableProps] = useState<MoveableProps>({
+    snappable: false,
+    snapGridWidth: 10,
+    snapGridHeight: 10,
+    target: null,
+    resizable: false,
+    rotatable: false,
+    originDraggable: false,
+    origin: false,
   });
 
   useEffect(() => {
@@ -75,25 +83,23 @@ const App = () => {
         })
       );
     }
-  }
+  };
 
   const handleGridResolutionChange = (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
     const resolution = parseInt(event.target.value);
-    setScreen((prevScreen) => ({
-      ...prevScreen,
-      snapGrid: { ...prevScreen.snapGrid, resolution },
+    setMoveableProps((prevMoveableProps) => ({
+      ...prevMoveableProps,
+      snapGridWidth: resolution,
+      snapGridHeight: resolution,
     }));
   };
 
   const handleGridToggle = () => {
-    setScreen((prevScreen) => ({
-      ...prevScreen,
-      snapGrid: {
-        ...prevScreen.snapGrid,
-        active: !screen.snapGrid.active,
-      },
+    setMoveableProps((prevMoveableProps) => ({
+      ...prevMoveableProps,
+      snappable: !prevMoveableProps.snappable,
     }));
   };
 
@@ -221,7 +227,7 @@ const App = () => {
         </div>
         <button
           className={`${
-            screen.snapGrid.active ? "bg-neutral-900" : ""
+            moveableProps.snappable ? "bg-neutral-900" : ""
           } p-2 hover:bg-neutral-700 active:bg-neutral-900 rounded-md`}
           onClick={handleGridToggle}
         >
@@ -235,8 +241,8 @@ const App = () => {
               w-full h-0.5 rounded-lg
               appearance-none cursor-pointer align-middle"
             type="range"
-            value={screen.snapGrid.resolution}
-            disabled={!screen.snapGrid.active}
+            value={moveableProps.snapGridWidth}
+            disabled={!moveableProps.snappable}
             onChange={handleGridResolutionChange}
           />
         </div>
@@ -247,6 +253,8 @@ const App = () => {
           views={views}
           viewsRef={viewsRef}
           setActiveViewID={setActiveViewID}
+          moveableProps={moveableProps}
+          setMoveableProps={setMoveableProps}
         />
         <aside
           className="bg-neutral-800 border border-neutral-700
