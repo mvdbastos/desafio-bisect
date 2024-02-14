@@ -40,14 +40,6 @@ export type CanvasProps = {
   setMoveableProps: Dispatch<SetStateAction<MoveableProps>>;
 };
 
-// export type MoveableProps = {
-//   target: HTMLElement | null;
-//   resizable: boolean;
-//   rotatable: boolean;
-//   originDraggable: boolean;
-//   origin: boolean;
-// };
-
 export default function Canvas({
   screen,
   views,
@@ -64,18 +56,21 @@ export default function Canvas({
     // update viewsRef when views change
     viewsRef.current = views;
     // disable moveable when views change
-    // setTarget(null);
     setMoveableProps((prev) => ({ ...prev, target: null }));
   }, [setMoveableProps, views, viewsRef]);
 
   const handleChangeTarget = (e: MouseEvent<HTMLElement>) => {
-    const target = e.target as HTMLElement;
+    let target = e.target as HTMLElement;
+    console.log("target: ", target.getRootNode());
+    // get the first parent element that contains the class "target" or the id "screen"
+    while (target && !target.classList.contains("target") && target.id !== "screen" && target.id !== "root") {
+      console.log("target: ", target);
+      target = target.parentElement as HTMLElement;
+    }
     if (target.classList.contains("target") || target.id === "screen") {
-      // setTarget(target);
       setMoveableProps((prev) => ({ ...prev, target }));
       setActiveViewID(target.id === "screen" ? null : target.id);
     } else {
-      // setTarget(null);
       setMoveableProps((prev) => ({ ...prev, target: null }));
       setActiveViewID(null);
     }
@@ -116,9 +111,9 @@ export default function Canvas({
             height: resolution.height,
             backgroundImage: `linear-gradient(to right, #444 1px, transparent 1px),
                               linear-gradient(to bottom, #444 1px, transparent 1px)`,
-            backgroundSize: `${moveableProps.snapGridWidth}px ${moveableProps.snapGridHeight}px`,
+            backgroundSize: `${moveableProps.snappable ? moveableProps.snapGridWidth : 0}px ${moveableProps.snappable ? moveableProps.snapGridHeight: 0}px`,
           }}
-          onClick={handleChangeTarget}
+          // onClick={handleChangeTarget}
         >
           {views.map((target, index) => {
             return (
