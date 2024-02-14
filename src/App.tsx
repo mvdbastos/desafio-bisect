@@ -15,16 +15,20 @@ import { View, Screen } from "./components/Canvas";
 import { useEffect, useRef, useState } from "react";
 import { MoveableProps } from "react-moveable";
 
+type Tool = "all" | "drag" | "resize" | "rotate";
+
 const App = () => {
+  const [tool, setTool] = useState<Tool>("all");
   const [views, setViews] = useState<View[]>([]);
   const viewsRef = useRef(views);
   const [activeViewID, setActiveViewID] = useState<string | null>(null);
   const screen: Screen = {resolution: { width: 640, height: 480 }};
   const [moveableProps, setMoveableProps] = useState<MoveableProps>({
+    target: null,
+    draggable: true,
     snappable: false,
     snapGridWidth: 10,
     snapGridHeight: 10,
-    target: null,
     resizable: false,
     rotatable: false,
     originDraggable: false,
@@ -37,12 +41,71 @@ const App = () => {
 
   useEffect(() => {
     console.log("activeViewID: ", activeViewID);
+    setTool("all");
   }, [activeViewID]);
+
+  useEffect(() => {
+    switch (tool) {
+      case "all":
+        setMoveableProps((prev) => ({
+          ...prev,
+          draggable: true,
+          resizable: true,
+          rotatable: true,
+        }));
+        break;
+      case "drag":
+        setMoveableProps((prev) => ({
+          ...prev,
+          draggable: true,
+          resizable: false,
+          rotatable: false,
+        }));
+        break;
+      case "resize":
+        setMoveableProps((prev) => ({
+          ...prev,
+          draggable: false,
+          resizable: true,
+          rotatable: false,
+        }));
+        break;
+      case "rotate":
+        setMoveableProps((prev) => ({
+          ...prev,
+          draggable: false,
+          resizable: false,
+          rotatable: true,
+        }));
+        break;
+    }
+  }, [tool, setTool]);
 
   const handleDeleteView = () => {
     if (activeViewID) {
       setViews(views.filter((view) => view.props.id !== activeViewID));
       setActiveViewID(null);
+    }
+  };
+
+  const handleChangeDrag = () => {
+    if (activeViewID) {
+      if (tool === "drag") setTool("all");
+      else setTool("drag");
+    }
+  };
+
+  const handleChangeResize = () => {
+    if (activeViewID) {
+      if (tool === "resize") setTool("all");
+      else setTool("resize");
+    }
+  };
+
+  const handleChangeRotate = () => {
+    if (activeViewID) {
+      if (tool === "rotate") setTool("all");
+      else setTool("rotate");
     }
   };
 
@@ -196,7 +259,7 @@ const App = () => {
         </div>
         <button
           className="ml-auto p-2 hover:bg-neutral-700 active:bg-neutral-900 disabled:opacity-25 rounded-md"
-          disabled={activeViewID === null}
+          disabled={!activeViewID}
           onClick={handleDeleteView}
         >
           <FontAwesomeIcon icon={faTrash} />
@@ -205,20 +268,23 @@ const App = () => {
           <FontAwesomeIcon icon={faMinus} rotation={90} />
         </div>
         <button
-          disabled
           className="p-2 hover:bg-neutral-700 active:bg-neutral-900 disabled:opacity-25 rounded-md"
+          disabled={!activeViewID}
+          onClick={handleChangeDrag}
         >
           <FontAwesomeIcon icon={faUpDownLeftRight} />
         </button>
         <button
-          disabled
           className="p-2 hover:bg-neutral-700 active:bg-neutral-900 disabled:opacity-25 rounded-md"
+          disabled={!activeViewID}
+          onClick={handleChangeResize}
         >
           <FontAwesomeIcon icon={faUpRightAndDownLeftFromCenter} />
         </button>
         <button
-          disabled
           className="p-2 hover:bg-neutral-700 active:bg-neutral-900 disabled:opacity-25 rounded-md"
+          disabled={!activeViewID}
+          onClick={handleChangeRotate}
         >
           <FontAwesomeIcon icon={faRotate} />
         </button>

@@ -142,7 +142,7 @@ export default function Canvas({
       <Moveable
         ref={moveableRef}
         flushSync={flushSync}
-        draggable={true}
+        draggable={moveableProps.draggable}
         target={moveableProps.target}
         resizable={moveableProps.resizable}
         rotatable={moveableProps.rotatable}
